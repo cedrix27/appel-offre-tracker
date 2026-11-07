@@ -9,7 +9,7 @@ export const TIMEZONE = "Africa/Ouagadougou";
 const fcfa = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
 /** 82600000 → « 82 600 000 FCFA » ; null → « Non précisé ». */
-export function formatFcfa(amount: number | null | undefined, taxBasis?: "HT" | "HTVA" | "TTC" | null): string {
+export function formatFcfa(amount: number | null | undefined, taxBasis?: string | null): string {
   if (amount === null || amount === undefined || !Number.isFinite(amount)) return NOT_SPECIFIED;
   // Intl utilise des espaces fines insécables ; on normalise en espace insécable simple.
   const n = fcfa.format(amount).replace(/[  ]/g, " ");
@@ -85,4 +85,38 @@ export function scoreLevel(score: number): ScoreLevel {
   if (score >= 75) return "high";
   if (score >= 50) return "medium";
   return "low";
+}
+
+/** Date et heure : « 7 novembre 2026 à 07:02 ». */
+export function formatDateTime(value: string | Date | null | undefined): string {
+  return formatDeadline(value, true);
+}
+
+/** Pages de la source : [33] → « p. 33 » ; [32, 33, 34] → « p. 32–34 » ; [32, 35] → « p. 32, 35 ». */
+export function formatPages(pages: number[] | null | undefined): string {
+  if (!pages?.length) return "";
+  const sorted = [...new Set(pages)].sort((a, b) => a - b);
+  const contiguous = sorted.every((p, i) => i === 0 || p === sorted[i - 1] + 1);
+  if (sorted.length === 1) return `p. ${sorted[0]}`;
+  return contiguous ? `p. ${sorted[0]}–${sorted[sorted.length - 1]}` : `p. ${sorted.join(", ")}`;
+}
+
+/** Taux 0..1 → « 12 % ». */
+export function formatPercent(rate: number | null | undefined): string {
+  if (rate === null || rate === undefined || !Number.isFinite(rate)) return NOT_SPECIFIED;
+  return `${Math.round(rate * 100)} %`;
+}
+
+const intFmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+
+/** Entier avec séparateurs français (espace insécable). */
+export function formatInt(n: number | null | undefined): string {
+  if (n === null || n === undefined || !Number.isFinite(n)) return "—";
+  return intFmt.format(n).replace(/[  ]/g, " ");
+}
+
+/** Valeur ISO → « YYYY-MM-DD » (jour à Ouagadougou, UTC). */
+export function isoDay(value: string | Date | null | undefined): string {
+  const d = toDate(value);
+  return d ? d.toISOString().slice(0, 10) : "";
 }
