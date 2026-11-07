@@ -26,3 +26,10 @@ export function collectionSentence(c: CollectionState | null | undefined): { tit
       return { title: "Collecte en cours", detail: `Démarrée le ${when}.` };
   }
 }
+
+/** Message de liste vide : distingue l'échec de collecte de l'absence d'annonce (règle 6). */
+export function emptyListMessage(collection: CollectionState | null | undefined, base: string): string {
+  if (collection?.lastOutcome === "FAILED")
+    return "La dernière collecte a échoué : les annonces du jour n'ont pas pu être vérifiées. Cette liste peut donc être incomplète.";
+  return base;
+}

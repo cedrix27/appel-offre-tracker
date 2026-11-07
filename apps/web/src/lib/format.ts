@@ -56,11 +56,20 @@ export type DeadlineState =
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** État d'échéance. « soon » = 7 jours ou moins. Ouagadougou = UTC, pas d'heure d'été. */
-export function deadlineState(value: string | Date | null | undefined, now: Date = new Date()): DeadlineState {
+/**
+ * État d'échéance. « soon » = 7 jours ou moins. Ouagadougou = UTC, pas d'heure d'été.
+ * D27 : sans heure connue (`hasTime = false`), la date vaut minuit UTC du jour limite ;
+ * l'annonce reste ouverte toute la journée (clôture effective = date + 24 h).
+ */
+export function deadlineState(
+  value: string | Date | null | undefined,
+  now: Date = new Date(),
+  hasTime = true,
+): DeadlineState {
   const d = toDate(value);
   if (!d) return { kind: "unknown" };
-  const diff = d.getTime() - now.getTime();
+  const end = hasTime ? d.getTime() : d.getTime() + DAY_MS;
+  const diff = end - now.getTime();
   if (diff < 0) return { kind: "closed" };
   const days = Math.floor(diff / DAY_MS);
   return days <= 7 ? { kind: "soon", days } : { kind: "open", days };

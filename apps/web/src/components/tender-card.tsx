@@ -103,7 +103,7 @@ export function TenderCard({
   /** Actions (favori…) rendues dans le pied de carte. */
   actions?: React.ReactNode;
 }) {
-  const state = deadlineState(tender.submissionDeadline, now);
+  const state = deadlineState(tender.submissionDeadline, now, tender.deadlineHasTime ?? true);
   const closedStatus = tender.status === "CLOSED" || tender.status === "CANCELLED" || tender.status === "AWARDED";
   const pages = formatPages(tender.source.pages);
 

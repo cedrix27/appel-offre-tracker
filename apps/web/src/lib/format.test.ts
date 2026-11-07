@@ -50,6 +50,26 @@ describe("deadlineState", () => {
   });
 });
 
+describe("date limite sans heure (D27)", () => {
+  const deadline = "2026-10-30T00:00:00Z"; // minuit UTC du jour limite
+
+  it("affiche la date seule, sans « à 00:00 »", () => {
+    expect(formatDeadline(deadline, false)).toBe("30 octobre 2026");
+  });
+
+  it("reste ouverte toute la journée limite", () => {
+    const sameDayAfternoon = new Date("2026-10-30T15:00:00Z");
+    expect(deadlineState(deadline, sameDayAfternoon, false)).toEqual({ kind: "soon", days: 0 });
+    expect(deadlineLabel(deadlineState(deadline, sameDayAfternoon, false))).toBe("Clôture aujourd'hui");
+    // Avec une heure connue (00:00), elle serait déjà clôturée.
+    expect(deadlineState(deadline, sameDayAfternoon, true)).toEqual({ kind: "closed" });
+  });
+
+  it("est clôturée le lendemain", () => {
+    expect(deadlineState(deadline, new Date("2026-10-31T00:00:01Z"), false)).toEqual({ kind: "closed" });
+  });
+});
+
 describe("scoreLevel", () => {
   it("applique les seuils 75 / 50", () => {
     expect(scoreLevel(82)).toBe("high");
