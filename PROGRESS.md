@@ -15,8 +15,8 @@ Une tâche n'est cochée que si build + lint + tests passent et qu'un commit exi
 - [ ] **T06** (BE) Préférences de veille + `/reference/taxonomy` — *e2e CRUD + 404 inter-entreprise*
 
 ## Phase 2 — Collecte (Python)
-- [ ] **T07** (BE-py) Connecteur DGCMEF : découverte liste HTML, téléchargement PDF (ETag, délai, UA), mode fixtures hors-ligne, `pdftotext`, segmentation en avis + pages — *pytest : 14 avis sur le n°4514, pieds de page retirés*
-- [ ] **T08** (BE-py) Extraction : règles (référence, organisme, procédure, date limite, budget, financement) + OpenAI structured outputs + validation pydantic + jamais d'invention ; persistance idempotente (jobs, runs, publications, tenders) — *pytest : relance = 0 doublon ; champs absents = NULL ; outcome SUCCESS_NEW/NONE/FAILED*
+- [x] **T07** (BE-py) Connecteur DGCMEF : découverte liste HTML, téléchargement PDF (ETag, délai, UA), mode fixtures hors-ligne, `pdftotext`, segmentation en avis + pages — *pytest : 10 avis (+1 avis de report ignoré) sur le n°4514, pieds de page retirés — commit e181e49*
+- [x] **T08** (BE-py) Extraction : règles (référence, organisme, procédure, date limite, budget, financement) + OpenAI structured outputs + validation pydantic + jamais d'invention ; persistance idempotente (jobs, runs, publications, tenders) — *pytest : relance = 0 doublon ; champs absents = NULL ; outcome SUCCESS_NEW/NONE/FAILED — commit 17948af, 57 tests*
 
 ## Phase 3 — Métier API
 - [ ] **T09** (BE) Annonces : liste filtrée/recherche/pagination, détail, favoris, statut de suivi, filtres — *e2e : filtres, isolation saved/match*
