@@ -30,8 +30,18 @@ LIST_URL = f"{BASE_URL}/index.php/fr/appels-d-offre"
 LIST_FIXTURE = "dgcmef_appels_d_offre.html"
 
 FRENCH_MONTHS = {
-    "janvier": 1, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6, "juillet": 7,
-    "aout": 8, "septembre": 9, "octobre": 10, "novembre": 11, "decembre": 12,
+    "janvier": 1,
+    "fevrier": 2,
+    "mars": 3,
+    "avril": 4,
+    "mai": 5,
+    "juin": 6,
+    "juillet": 7,
+    "aout": 8,
+    "septembre": 9,
+    "octobre": 10,
+    "novembre": 11,
+    "decembre": 12,
 }
 _DATE_RX = re.compile(r"\b(\d{1,2})(?:er)?\s+([a-z]+)\s+(\d{4})\b")
 _NUMBER_RX = re.compile(r"quotidien\s+n\s*[°o]\s*(\d{3,6})\s*(\(?\s*bis\s*\)?)?", re.IGNORECASE)

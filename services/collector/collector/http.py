@@ -94,13 +94,18 @@ class PoliteClient:
                 if attempt >= self.max_retries:
                     raise FetchError(f"échec réseau sur {url} : {exc.__class__.__name__}") from exc
                 attempt += 1
-                log.warning("requête échouée (%s), nouvel essai %d/%d", exc.__class__.__name__, attempt,
-                            self.max_retries)
+                log.warning(
+                    "requête échouée (%s), nouvel essai %d/%d",
+                    exc.__class__.__name__,
+                    attempt,
+                    self.max_retries,
+                )
                 continue
             if resp.status_code >= 500 and attempt < self.max_retries:
                 attempt += 1
-                log.warning("HTTP %d sur %s, nouvel essai %d/%d", resp.status_code, url, attempt,
-                            self.max_retries)
+                log.warning(
+                    "HTTP %d sur %s, nouvel essai %d/%d", resp.status_code, url, attempt, self.max_retries
+                )
                 continue
             return resp
 

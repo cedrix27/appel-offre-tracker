@@ -14,8 +14,14 @@ def _client(handler, **kw):
         sleeps.append(s)
         clock["t"] += s
 
-    c = PoliteClient("UA/1", min_delay_seconds=5, transport=httpx.MockTransport(handler), sleep=sleep,
-                     clock=lambda: clock["t"], **kw)
+    c = PoliteClient(
+        "UA/1",
+        min_delay_seconds=5,
+        transport=httpx.MockTransport(handler),
+        sleep=sleep,
+        clock=lambda: clock["t"],
+        **kw,
+    )
     return c, sleeps
 
 

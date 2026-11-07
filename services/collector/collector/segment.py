@@ -235,7 +235,7 @@ def _parse_block(block: list[_Line], inherited_category: str | None) -> Notice |
             break
         title_lines.append(t)
     notice_line = lines[notice_idx].text
-    header_lines = [ln.text for ln in lines[nonblank_idx[0]: min(len(lines), notice_idx + 6)] if ln.text]
+    header_lines = [ln.text for ln in lines[nonblank_idx[0] : min(len(lines), notice_idx + 6)] if ln.text]
     # Sans intitulé propre (ex. avis de report), l'intitulé est la ligne d'avis elle-même.
     title = compact(" ".join(title_lines)) or compact(notice_line)
     text = "\n".join(ln.text for ln in lines).strip()

@@ -34,9 +34,15 @@ def clean_database_url(url: str) -> str:
     return urlunsplit(parts._replace(query=urlencode(query)))
 
 
-def _resolve_path(value: str) -> Path:
+def _resolve_path(value: str, prefer_cwd: bool = False) -> Path:
+    """Chemin absolu tel quel ; relatif : par rapport à la racine du dépôt (convention du `.env`),
+    ou au répertoire courant s'il y existe et que `prefer_cwd` est vrai."""
     p = Path(value)
-    return p if p.is_absolute() else (REPO_ROOT / p)
+    if p.is_absolute():
+        return p
+    if prefer_cwd and (Path.cwd() / p).exists():
+        return (Path.cwd() / p).resolve()
+    return REPO_ROOT / p
 
 
 @dataclass(frozen=True)
@@ -66,7 +72,7 @@ def get_settings() -> Settings:
         # Plancher de 5 s imposé par les règles du projet (respect des sources).
         min_delay_seconds=max(5.0, float(os.environ.get("COLLECTOR_MIN_DELAY_SECONDS") or 5)),
         storage_dir=_resolve_path(os.environ.get("COLLECTOR_STORAGE_DIR") or "services/collector/data"),
-        offline_fixtures=_resolve_path(offline) if offline else None,
+        offline_fixtures=_resolve_path(offline, prefer_cwd=True) if offline else None,
         http_timeout_seconds=float(os.environ.get("COLLECTOR_HTTP_TIMEOUT_SECONDS") or 60),
         openai_timeout_seconds=float(os.environ.get("OPENAI_TIMEOUT_SECONDS") or 90),
     )

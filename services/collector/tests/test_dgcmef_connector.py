@@ -27,7 +27,9 @@ def test_parse_listing_finds_10_publications():
     assert first.title == "Quotidien n° 4514 – Mercredi 21 octobre 2026"
     assert first.publication_date == date(2026, 10, 21)
     assert first.page_url == "https://www.dgcmef.gov.bf/index.php/fr/node/2466"
-    assert first.file_url == "http://www.dgcmef.gov.bf/sites/default/files/2026-10/Quotidien%20n%C2%B04514.pdf"
+    assert (
+        first.file_url == "http://www.dgcmef.gov.bf/sites/default/files/2026-10/Quotidien%20n%C2%B04514.pdf"
+    )
     # noms de fichiers irréguliers lus tels quels (N° majuscule, espace avant .pdf)
     p4512 = next(p for p in pubs if p.number == "4512")
     assert p4512.file_url.endswith("Quotidien%20N%C2%B04512%20.pdf")
@@ -90,8 +92,9 @@ def test_online_connector_with_mock_transport(monkeypatch):
         return httpx.Response(404)
 
     sleeps: list[float] = []
-    client = PoliteClient("SRC-Test/1.0", min_delay_seconds=5, transport=httpx.MockTransport(handler),
-                          sleep=sleeps.append)
+    client = PoliteClient(
+        "SRC-Test/1.0", min_delay_seconds=5, transport=httpx.MockTransport(handler), sleep=sleeps.append
+    )
     settings = replace(get_settings(), offline_fixtures=None)
     conn = DgcmefConnector(settings, client=client)
     pubs = conn.discover()
