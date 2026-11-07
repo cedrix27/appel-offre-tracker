@@ -13,8 +13,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest==9.2.0", "ruff==0.14.4"]
 
+[tool.setuptools.packages.find]
+include = ["collector*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 110
