@@ -1,0 +1,24 @@
+[project]
+name = "src-collector"
+version = "0.1.0"
+description = "SRC Digital — collecteur d'appels d'offres (Burkina Faso)"
+requires-python = ">=3.12"
+dependencies = [
+  "httpx==0.28.1",
+  "psycopg[binary]==3.3.8",
+  "pydantic==2.14.3",
+  "python-dotenv==1.1.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "ruff==0.14.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

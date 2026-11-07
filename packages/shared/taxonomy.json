@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "sectors": [
+    {
+      "code": "informatique",
+      "label": "Informatique & télécoms",
+      "keywords": [
+        "informatique",
+        "logiciel",
+        "logiciels",
+        "ordinateur",
+        "ordinateurs",
+        "imprimante",
+        "imprimantes",
+        "serveur",
+        "réseau",
+        "réseaux",
+        "télécommunication",
+        "internet",
+        "site web",
+        "application",
+        "numérique",
+        "fibre optique",
+        "vidéosurveillance",
+        "onduleur"
+      ]
+    },
+    {
+      "code": "btp",
+      "label": "BTP & génie civil",
+      "keywords": [
+        "construction",
+        "réhabilitation",
+        "bâtiment",
+        "bâtiments",
+        "travaux",
+        "génie civil",
+        "route",
+        "routes",
+        "bitumage",
+        "pont",
+        "ouvrage",
+        "salles de classe",
+        "clôture",
+        "aménagement",
+        "voirie"
+      ]
+    },
+    {
+      "code": "hydraulique",
+      "label": "Eau, hydraulique & assainissement",
+      "keywords": [
+        "forage",
+        "forages",
+        "hydraulique",
+        "adduction d'eau",
+        "château d'eau",
+        "châteaux",
+        "assainissement",
+        "latrines",
+        "toilettes",
+        "pompe",
+        "barrage",
+        "eau potable"
+      ]
+    },
+    {
+      "code": "energie",
+      "label": "Énergie & électricité",
+      "keywords": [
+        "électricité",
+        "électrification",
+        "solaire",
+        "photovoltaïque",
+        "groupe électrogène",
+        "énergie",
+        "éclairage public",
+        "câblage électrique"
+      ]
+    },
+    {
+      "code": "fournitures_bureau",
+      "label": "Fournitures & mobilier de bureau",
+      "keywords": [
+        "fournitures de bureau",
+        "mobilier",
+        "consommables",
+        "papeterie",
+        "fournitures scolaires",
+        "matériel de bureau"
+      ]
+    },
+    {
+      "code": "vehicules",
+      "label": "Véhicules & engins",
+      "keywords": [
+        "véhicule",
+        "véhicules",
+        "engin",
+        "engins",
+        "motos",
+        "pneumatiques",
+        "pièces de rechange",
+        "carburant",
+        "lubrifiants",
+        "entretien de véhicules"
+      ]
+    },
+    {
+      "code": "sante",
+      "label": "Santé & médicaments",
+      "keywords": [
+        "médicaments",
+        "médical",
+        "médicaux",
+        "santé",
+        "hôpital",
+        "laboratoire",
+        "réactifs",
+        "consommables médicaux",
+        "vaccins"
+      ]
+    },
+    {
+      "code": "agriculture",
+      "label": "Agriculture, élevage & environnement",
+      "keywords": [
+        "agricole",
+        "agriculture",
+        "semences",
+        "engrais",
+        "élevage",
+        "bétail",
+        "aménagement hydro-agricole",
+        "environnement",
+        "reboisement",
+        "espaces verts",
+        "pépinière"
+      ]
+    },
+    {
+      "code": "etudes_conseil",
+      "label": "Études, conseil & formation",
+      "keywords": [
+        "étude",
+        "études",
+        "consultant",
+        "consultants",
+        "bureau d'études",
+        "audit",
+        "formation",
+        "assistance technique",
+        "contrôle et surveillance",
+        "suivi-contrôle",
+        "notice d'impact",
+        "évaluation"
+      ]
+    },
+    {
+      "code": "restauration",
+      "label": "Restauration & événementiel",
+      "keywords": [
+        "restauration",
+        "pause-café",
+        "pauses-café",
+        "traiteur",
+        "hébergement",
+        "location de salle",
+        "sonorisation",
+        "événementiel",
+        "vivres"
+      ]
+    },
+    {
+      "code": "nettoyage_securite",
+      "label": "Nettoyage, gardiennage & sécurité",
+      "keywords": [
+        "nettoyage",
+        "entretien des locaux",
+        "gardiennage",
+        "sécurité",
+        "désinsectisation",
+        "dératisation"
+      ]
+    },
+    {
+      "code": "impression_communication",
+      "label": "Impression & communication",
+      "keywords": [
+        "impression",
+        "imprimerie",
+        "reprographie",
+        "communication",
+        "publicité",
+        "confection",
+        "gadgets",
+        "banderoles",
+        "tee-shirts"
+      ]
+    },
+    {
+      "code": "transport_logistique",
+      "label": "Transport & logistique",
+      "keywords": [
+        "transport",
+        "transit",
+        "logistique",
+        "déménagement",
+        "acheminement",
+        "billets d'avion"
+      ]
+    },
+    {
+      "code": "autres",
+      "label": "Autres",
+      "keywords": []
+    }
+  ],
+  "procedureTypes": [
+    "Demande de prix",
+    "Appel d'offres ouvert",
+    "Appel d'offres restreint",
+    "Manifestation d'intérêt",
+    "Demande de propositions",
+    "Autre"
+  ],
+  "zones": [
+    "National",
+    "Ouagadougou",
+    "Bobo-Dioulasso",
+    "Koudougou",
+    "Ouahigouya",
+    "Kaya",
+    "Banfora",
+    "Dédougou",
+    "Fada N'Gourma",
+    "Tenkodogo",
+    "Ziniaré",
+    "Manga",
+    "Gaoua",
+    "Dori"
+  ]
+}

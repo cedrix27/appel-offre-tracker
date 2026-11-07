@@ -1,0 +1,8 @@
+{
+  "name": "@src/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Contrats partagés API / web / collecteur : taxonomie et schéma d'extraction IA",
+  "main": "index.js",
+  "files": ["taxonomy.json", "tender-extraction.schema.json", "index.js", "index.d.ts"]
+}

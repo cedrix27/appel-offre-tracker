@@ -1,0 +1,463 @@
+// SRC Digital — schéma de données (contrat partagé API NestJS ↔ collecteur Python).
+// Conventions : tables et colonnes en snake_case (@@map / @map), UUID, timestamptz (UTC).
+// Le collecteur Python écrit directement : source_runs, source_publications, tenders,
+// tender_documents, collector_jobs (statut). Toute modification ici doit être répercutée
+// dans services/collector/collector/db.py.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── Comptes & entreprises ─────────────────────────────
+
+enum GlobalRole {
+  SUPER_ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum MemberRole {
+  COMPANY_ADMIN
+  COMPANY_MEMBER
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  REFRESH
+}
+
+model User {
+  id              String     @id @default(uuid()) @db.Uuid
+  email           String     @unique // stocké en minuscules
+  passwordHash    String?    @map("password_hash") // null = invitation non acceptée
+  fullName        String     @map("full_name")
+  globalRole      GlobalRole @default(USER) @map("global_role")
+  status          UserStatus @default(ACTIVE)
+  emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz
+  lastLoginAt     DateTime?  @map("last_login_at") @db.Timestamptz
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  memberships  CompanyMember[]
+  authTokens   AuthToken[]
+  savedTenders SavedTender[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model AuthToken {
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  type      AuthTokenType
+  tokenHash String        @unique @map("token_hash") // SHA-256 du jeton, jamais le jeton brut
+  expiresAt DateTime      @map("expires_at") @db.Timestamptz
+  usedAt    DateTime?     @map("used_at") @db.Timestamptz
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("auth_tokens")
+}
+
+model Company {
+  id               String        @id @default(uuid()) @db.Uuid
+  legalName        String        @map("legal_name")
+  tradeName        String?       @map("trade_name")
+  description      String?
+  mainSector       String?       @map("main_sector") // code de taxonomie
+  secondarySectors String[]      @default([]) @map("secondary_sectors")
+  skills           String[]      @default([])
+  services         String[]      @default([])
+  city             String?
+  address          String?
+  regions          String[]      @default([]) // zones d'intervention
+  email            String?
+  phone            String?
+  website          String?
+  status           CompanyStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  members       CompanyMember[]
+  preferences   WatchPreference[]
+  matches       TenderMatch[]
+  savedTenders  SavedTender[]
+  notifications Notification[]
+
+  @@map("companies")
+}
+
+model CompanyMember {
+  id        String     @id @default(uuid()) @db.Uuid
+  companyId String     @map("company_id") @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  role      MemberRole @default(COMPANY_MEMBER)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([userId])
+  @@map("company_members")
+}
+
+model WatchPreference {
+  id              String   @id @default(uuid()) @db.Uuid
+  companyId       String   @map("company_id") @db.Uuid
+  name            String   @default("Veille principale")
+  sectors         String[] @default([]) // codes de taxonomie
+  keywordsInclude String[] @default([]) @map("keywords_include")
+  keywordsExclude String[] @default([]) @map("keywords_exclude")
+  procedureTypes  String[] @default([]) @map("procedure_types")
+  regions         String[] @default([])
+  budgetMin       BigInt?  @map("budget_min") // FCFA
+  budgetMax       BigInt?  @map("budget_max")
+  minScore        Int      @default(40) @map("min_score") // 0..100
+  recipients      String[] @default([]) // e-mails ; vide = membres de l'entreprise
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  company Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  matches TenderMatch[]
+
+  @@index([companyId])
+  @@map("watch_preferences")
+}
+
+// ───────────────────────────── Collecte (données globales) ─────────────────────────────
+
+enum SourceStatus {
+  ACTIVE
+  PAUSED
+  DISABLED
+}
+
+enum JobKind {
+  COLLECT
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum RunOutcome {
+  RUNNING
+  SUCCESS_NEW // collecte réussie, nouvelles annonces
+  SUCCESS_NONE // collecte réussie, aucune nouvelle annonce
+  FAILED // collecte échouée / source indisponible
+}
+
+model Source {
+  id            String       @id @default(uuid()) @db.Uuid
+  code          String       @unique // ex. "dgcmef"
+  name          String
+  baseUrl       String       @map("base_url")
+  type          String // HTML_PDF, HTML, API…
+  accessMethod  String       @map("access_method") // description de la méthode autorisée
+  frequencyCron String       @default("0 7 * * *") @map("frequency_cron")
+  status        SourceStatus @default(ACTIVE)
+  lastSuccessAt DateTime?    @map("last_success_at") @db.Timestamptz
+  errorRate     Float        @default(0) @map("error_rate") // sur les 20 derniers runs
+  notes         String?
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  jobs         CollectorJob[]
+  runs         SourceRun[]
+  publications SourcePublication[]
+  tenders      Tender[]
+
+  @@map("sources")
+}
+
+model CollectorJob {
+  id             String    @id @default(uuid()) @db.Uuid
+  sourceId       String    @map("source_id") @db.Uuid
+  kind           JobKind   @default(COLLECT)
+  payload        Json      @default("{}")
+  status         JobStatus @default(PENDING)
+  attempts       Int       @default(0)
+  lockedAt       DateTime? @map("locked_at") @db.Timestamptz
+  lastError      String?   @map("last_error")
+  idempotencyKey String    @unique @map("idempotency_key") // ex. "collect:dgcmef:2026-11-06"
+  requestedBy    String?   @map("requested_by") @db.Uuid // admin qui a relancé
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz
+
+  source Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  runs   SourceRun[]
+
+  @@index([status, createdAt])
+  @@map("collector_jobs")
+}
+
+model SourceRun {
+  id             String     @id @default(uuid()) @db.Uuid
+  sourceId       String     @map("source_id") @db.Uuid
+  jobId          String?    @map("job_id") @db.Uuid
+  startedAt      DateTime   @default(now()) @map("started_at") @db.Timestamptz
+  finishedAt     DateTime?  @map("finished_at") @db.Timestamptz
+  outcome        RunOutcome @default(RUNNING)
+  publicationsFound Int     @default(0) @map("publications_found")
+  itemsFound     Int        @default(0) @map("items_found")
+  itemsNew       Int        @default(0) @map("items_new")
+  itemsUpdated   Int        @default(0) @map("items_updated")
+  errorMessage   String?    @map("error_message")
+  log            Json       @default("[]") // événements horodatés, sans secrets
+
+  source Source        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  job    CollectorJob? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([sourceId, startedAt])
+  @@map("source_runs")
+}
+
+model SourcePublication {
+  id              String    @id @default(uuid()) @db.Uuid
+  sourceId        String    @map("source_id") @db.Uuid
+  externalRef     String    @map("external_ref") // ex. "Quotidien n°4514"
+  title           String?
+  publicationDate DateTime? @map("publication_date") @db.Date
+  pageUrl         String?   @map("page_url")
+  fileUrl         String?   @map("file_url")
+  sha256          String?
+  etag            String?
+  storageKey      String?   @map("storage_key") // chemin local / clé S3 du PDF conservé
+  pageCount       Int?      @map("page_count")
+  fetchedAt       DateTime  @default(now()) @map("fetched_at") @db.Timestamptz
+  parsedAt        DateTime? @map("parsed_at") @db.Timestamptz
+
+  source  Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  tenders Tender[]
+
+  @@unique([sourceId, externalRef])
+  @@map("source_publications")
+}
+
+enum TenderStatus {
+  NEW
+  UPDATED
+  CLOSED
+  CANCELLED
+  AWARDED
+}
+
+model Tender {
+  id            String  @id @default(uuid()) @db.Uuid
+  sourceId      String  @map("source_id") @db.Uuid
+  publicationId String? @map("publication_id") @db.Uuid
+  contentHash   String  @unique @map("content_hash") // SHA-256 du texte normalisé de l'avis
+
+  // Champs extraits — tous nullables : absent = NULL (« Non précisé »), jamais déduit.
+  title                   String
+  reference               String?
+  organization            String?
+  description             String?
+  categories              String[]  @default([]) // libellés source (ex. « Fournitures et services courants »)
+  sectors                 String[]  @default([]) // codes de taxonomie (classification)
+  procedureType           String?   @map("procedure_type")
+  location                String?
+  publicationDate         DateTime? @map("publication_date") @db.Date
+  submissionDeadline      DateTime? @map("submission_deadline") @db.Timestamptz
+  deadlineHasTime         Boolean   @default(false) @map("deadline_has_time")
+  estimatedBudget         BigInt?   @map("estimated_budget") // FCFA, seulement si publié
+  budgetTaxBasis          String?   @map("budget_tax_basis") // HT | HTVA | TTC
+  fundingSource           String?   @map("funding_source")
+  eligibilityRequirements Json      @default("[]") @map("eligibility_requirements")
+  requiredDocuments       Json      @default("[]") @map("required_documents")
+  summary                 String?
+  missingOrUncertainFields String[] @default([]) @map("missing_or_uncertain_fields")
+  status                  TenderStatus @default(NEW)
+
+  // Preuves & traçabilité
+  sourceUrl      String   @map("source_url") // URL officielle (PDF / page)
+  sourcePages    Int[]    @default([]) @map("source_pages")
+  rawText        String   @map("raw_text") // texte extrait conservé pour audit
+  evidence       Json     @default("{}") // { champ: "passage source" }
+  extractionModel String? @map("extraction_model") // "openai:<model>" | "rules:v1"
+  extractedAt    DateTime? @map("extracted_at") @db.Timestamptz
+  collectedAt    DateTime @default(now()) @map("collected_at") @db.Timestamptz
+  lastVerifiedAt DateTime @default(now()) @map("last_verified_at") @db.Timestamptz
+  matchedAt      DateTime? @map("matched_at") @db.Timestamptz // dernier passage du moteur de matching
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  source      Source             @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  publication SourcePublication? @relation(fields: [publicationId], references: [id], onDelete: SetNull)
+  documents   TenderDocument[]
+  matches     TenderMatch[]
+  saved       SavedTender[]
+
+  @@index([submissionDeadline])
+  @@index([publicationDate])
+  @@map("tenders")
+}
+
+model TenderDocument {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenderId   String   @map("tender_id") @db.Uuid
+  label      String?
+  url        String
+  storageKey String?  @map("storage_key")
+  mime       String?
+  sha256     String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tender Tender @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@unique([tenderId, url])
+  @@map("tender_documents")
+}
+
+// ───────────────────────────── Données par entreprise (cloisonnées) ─────────────────────────────
+
+model TenderMatch {
+  id              String    @id @default(uuid()) @db.Uuid
+  companyId       String    @map("company_id") @db.Uuid
+  tenderId        String    @map("tender_id") @db.Uuid
+  preferenceId    String?   @map("preference_id") @db.Uuid
+  score           Int // 0..100, indicatif
+  reasons         Json      @default("[]") // [{ code, label, points }]
+  matchedKeywords String[]  @default([]) @map("matched_keywords")
+  notifiedAt      DateTime? @map("notified_at") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  company    Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tender     Tender           @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  preference WatchPreference? @relation(fields: [preferenceId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, tenderId])
+  @@index([companyId, createdAt])
+  @@map("tender_matches")
+}
+
+enum SavedStatus {
+  TO_REVIEW
+  INTERESTED
+  APPLYING
+  IGNORED
+}
+
+model SavedTender {
+  id         String      @id @default(uuid()) @db.Uuid
+  companyId  String      @map("company_id") @db.Uuid
+  tenderId   String      @map("tender_id") @db.Uuid
+  userId     String?     @map("user_id") @db.Uuid // dernier utilisateur ayant modifié
+  isFavorite Boolean     @default(false) @map("is_favorite")
+  status     SavedStatus @default(TO_REVIEW)
+  note       String?
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tender  Tender  @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, tenderId])
+  @@map("saved_tenders")
+}
+
+enum NotificationKind {
+  DAILY_DIGEST
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model Notification {
+  id                String             @id @default(uuid()) @db.Uuid
+  companyId         String             @map("company_id") @db.Uuid
+  kind              NotificationKind   @default(DAILY_DIGEST)
+  digestDate        DateTime           @map("digest_date") @db.Date
+  idempotencyKey    String             @unique @map("idempotency_key") // "digest:<companyId>:<YYYY-MM-DD>"
+  recipients        String[]           @default([])
+  tenderIds         String[]           @default([]) @map("tender_ids")
+  subject           String?
+  status            NotificationStatus @default(QUEUED)
+  provider          String?
+  providerMessageId String?            @map("provider_message_id")
+  error             String?
+  attempts          Int                @default(0)
+  sentAt            DateTime?          @map("sent_at") @db.Timestamptz
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, digestDate])
+  @@map("notifications")
+}
+
+// E-mails transactionnels et digests tels qu'envoyés (provider "log" en dev/test).
+model EmailOutbox {
+  id                String    @id @default(uuid()) @db.Uuid
+  to                String[]
+  subject           String
+  html              String
+  text              String
+  category          String // VERIFY_EMAIL | PASSWORD_RESET | INVITE | DAILY_DIGEST
+  provider          String
+  providerMessageId String?   @map("provider_message_id")
+  status            String    @default("SENT") // SENT | FAILED
+  error             String?
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([createdAt])
+  @@map("email_outbox")
+}
+
+model PipelineRun {
+  id             String    @id @default(uuid()) @db.Uuid
+  runDate        DateTime  @map("run_date") @db.Date
+  trigger        String // CRON | ADMIN
+  status         String    @default("RUNNING") // RUNNING | DONE | FAILED
+  steps          Json      @default("[]")
+  startedAt      DateTime  @default(now()) @map("started_at") @db.Timestamptz
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz
+  error          String?
+
+  @@index([runDate])
+  @@map("pipeline_runs")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  companyId   String?  @map("company_id") @db.Uuid
+  action      String // ex. "company.suspend", "source.run"
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id")
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@map("audit_logs")
+}

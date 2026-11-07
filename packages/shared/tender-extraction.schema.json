@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TenderExtraction",
+  "description": "Extraction structurée d'un avis d'appel d'offres. Toute information absente du texte source DOIT être null (ou liste vide) et figurer dans missing_or_uncertain_fields. Ne jamais déduire une date limite, un montant, un organisme ou une condition.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Intitulé de l'avis tel qu'écrit"
+    },
+    "reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "organization": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Autorité contractante"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Objet du marché"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Libellés de catégorie de la source"
+    },
+    "sectors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "informatique",
+          "btp",
+          "hydraulique",
+          "energie",
+          "fournitures_bureau",
+          "vehicules",
+          "sante",
+          "agriculture",
+          "etudes_conseil",
+          "restauration",
+          "nettoyage_securite",
+          "impression_communication",
+          "transport_logistique",
+          "autres"
+        ]
+      },
+      "description": "Codes de la taxonomie contrôlée"
+    },
+    "procedure_type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "Demande de prix",
+        "Appel d'offres ouvert",
+        "Appel d'offres restreint",
+        "Manifestation d'intérêt",
+        "Demande de propositions",
+        "Autre",
+        null
+      ]
+    },
+    "location": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "publication_date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "YYYY-MM-DD"
+    },
+    "submission_deadline": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "YYYY-MM-DD, uniquement si écrite dans l'avis"
+    },
+    "submission_time": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "HH:MM (heure TU/Ouagadougou), uniquement si écrite"
+    },
+    "estimated_budget": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Montant prévisionnel en FCFA, uniquement si publié explicitement"
+    },
+    "budget_tax_basis": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "HT",
+        "HTVA",
+        "TTC",
+        null
+      ]
+    },
+    "funding_source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "eligibility_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "Résumé concis (2 phrases max), sans information absente de la source"
+    },
+    "missing_or_uncertain_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Passage source justifiant chaque champ critique",
+      "properties": {
+        "reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "organization": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "submission_deadline": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "estimated_budget": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "reference",
+        "organization",
+        "submission_deadline",
+        "estimated_budget"
+      ]
+    }
+  },
+  "required": [
+    "title",
+    "reference",
+    "organization",
+    "description",
+    "categories",
+    "sectors",
+    "procedure_type",
+    "location",
+    "publication_date",
+    "submission_deadline",
+    "submission_time",
+    "estimated_budget",
+    "budget_tax_basis",
+    "funding_source",
+    "eligibility_requirements",
+    "required_documents",
+    "summary",
+    "missing_or_uncertain_fields",
+    "evidence"
+  ]
+}
