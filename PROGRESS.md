@@ -6,7 +6,7 @@ Une tâche n'est cochée que si build + lint + tests passent et qu'un commit exi
 ## Phase 0 — Cadrage
 - [x] **T00** (ARC) Audit dépôt + sources, docs/01–05 — *critère : docs présents, audit DGCMEF réel*
 - [x] **T01** (FE) Socle Next.js + shadcn + thème rouge/noir, page d'accueil — *build/lint/test verts*
-- [ ] **T02** (ARC) PLAN.md, PROGRESS.md, DECISIONS.md, CLAUDE.md, agents `.claude/agents/`, schéma Prisma
+- [x] **T02** (ARC) PLAN.md, PROGRESS.md, DECISIONS.md, CLAUDE.md, agents `.claude/agents/`, schéma Prisma
 
 ## Phase 1 — Socle API
 - [ ] **T03** (BE) NestJS 11 + Prisma : config Zod, PrismaService, `/health`, ValidationPipe Zod, filtre d'erreurs, throttler, cookie-parser, migration initiale, seed (source DGCMEF + super admin) — *`pnpm --filter api test` vert, `/health` = ok*
