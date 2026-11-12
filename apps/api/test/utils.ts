@@ -184,6 +184,7 @@ export async function createTender(
     location: string | null;
     publicationDate: Date | null;
     submissionDeadline: Date | null;
+    deadlineHasTime: boolean;
     estimatedBudget: bigint | null;
     status: 'NEW' | 'UPDATED' | 'CLOSED' | 'CANCELLED' | 'AWARDED';
   }> = {},
@@ -218,6 +219,7 @@ export async function createTender(
         data.submissionDeadline === undefined
           ? new Date(Date.now() + 10 * 24 * 3600 * 1000)
           : data.submissionDeadline,
+      deadlineHasTime: data.deadlineHasTime ?? true,
       estimatedBudget:
         data.estimatedBudget === undefined ? null : data.estimatedBudget,
       status: data.status ?? 'NEW',
