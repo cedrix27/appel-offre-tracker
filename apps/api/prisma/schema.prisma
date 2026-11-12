@@ -39,6 +39,7 @@ enum AuthTokenType {
   EMAIL_VERIFY
   PASSWORD_RESET
   REFRESH
+  INVITE // invitation d'un membre (7 jours)
 }
 
 model User {
