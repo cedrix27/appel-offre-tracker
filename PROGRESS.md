@@ -34,7 +34,7 @@ Une tâche n'est cochée que si build + lint + tests passent et qu'un commit exi
 
 ## Phase 5 — Qualité & livraison
 - [x] **T18** (TE) Tests d'isolation multi-tenant A/B sur toutes les routes cloisonnées — ✅ *test/isolation.e2e-spec.ts (API) — 8 tests A/B*
-- [ ] **T19** (TE) Playwright e2e : inscription → vérification → connexion → profil → préférences → collecte (fixtures) → matching → dashboard → fiche → favori → digest ; admin relance
-- [ ] **T20** (OPS) Scripts (`setup`, `dev`, `test:all`, `db:*`), CI GitHub Actions, `.env.example` complet, README de lancement
-- [ ] **T21** (CR) Revue code & sécurité, corrections appliquées
+- [x] **T19** (TE) Playwright e2e : inscription → vérification → connexion → profil → préférences → collecte (fixtures) → matching → dashboard → fiche → favori → digest ; admin relance — ✅ *e2e/journey.spec.ts (6 étapes) + smoke desktop/mobile — 12/14 verts, 2 rouges = pages légales absentes (T17b)*
+- [x] **T20** (OPS) Scripts (`setup`, `dev`, `test:all`, `db:*`), CI GitHub Actions, `.env.example` complet, README de lancement — ✅ *scripts/, .github/workflows/ci.yml, .env.example complet — CI non exécutée (pas de remote GitHub)*
+- [x] **T21** (CR) Revue code & sécurité, corrections appliquées — ✅ *voir VALIDATION.md §Sécurité — nodemailer 10, multer, en-têtes ; 4 avis restants documentés*
 - [ ] **T22** Validation finale : VALIDATION.md (preuve par fonctionnalité), RAPPORT.md

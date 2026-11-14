@@ -9,6 +9,14 @@ test("page d'accueil en français, sans défilement horizontal", async ({ page }
   expect(overflow).toBeLessThanOrEqual(0);
 });
 
+test("en-têtes de sécurité (anti-clickjacking, nosniff)", async ({ page }) => {
+  const res = await page.goto("/connexion");
+  const headers = res?.headers() ?? {};
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+});
+
 test("espace connecté protégé : redirection vers la connexion", async ({ page }) => {
   await page.goto("/app/annonces");
   await expect(page).toHaveURL(/\/connexion\?next=%2Fapp%2Fannonces|\/connexion\?next=\/app\/annonces/);

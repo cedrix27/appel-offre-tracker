@@ -33,5 +33,10 @@
     "db:backup": "bash scripts/db-backup.sh",
     "db:restore": "bash scripts/db-restore.sh",
     "collector": "services/collector/.venv/bin/python -m collector"
+  },
+  "pnpm": {
+    "overrides": {
+      "multer": ">=2.5.0"
+    }
   }
 }
