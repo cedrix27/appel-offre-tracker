@@ -15,7 +15,7 @@ quelques points listés en fin de document.
 | e2e API | `pnpm test:e2e:api` | ✅ 59/59 (8 suites) |
 | Playwright | `pnpm test:e2e` | ⚠️ 12/14 — 2 échecs : pages légales absentes (T17b) |
 | Builds | `pnpm build` | ✅ |
-| CI GitHub Actions | `.github/workflows/ci.yml` | ⏸ écrite, jamais exécutée (dépôt sans remote) |
+| CI GitHub Actions | `.github/workflows/ci.yml` | ⚠️ exécutée sur GitHub : toutes les étapes vertes sauf Playwright (mêmes 2 échecs, pages légales) |
 
 ## Preuve par fonctionnalité
 
@@ -67,8 +67,7 @@ Restant (`pnpm audit --prod` : 4 avis) :
 2. **T17b — pages légales** : `/mentions-legales` et `/confidentialite` répondent 404 (dossiers vides).
    Leur contenu (éditeur, adresse, RCCM/IFU, hébergeur, traitement des données) doit être fourni : il ne
    sera pas inventé.
-3. **CI jamais exécutée** : pousser le dépôt sur GitHub pour valider `ci.yml`.
-4. **Collecte réelle non éprouvée en continu** : aucune exécution quotidienne sur le site DGCMEF en conditions
+3. **Collecte réelle non éprouvée en continu** : aucune exécution quotidienne sur le site DGCMEF en conditions
    réelles n'a encore été observée.
 
 ## Améliorations recommandées
