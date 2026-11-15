@@ -62,6 +62,8 @@ jobs:
 
       - name: Dépendances
         run: |
+          # node-gyp 9 (embarqué par pnpm 8) importe distutils, retiré de Python 3.12 : setuptools le fournit.
+          python -m pip install -q setuptools
           pnpm install --frozen-lockfile
           python -m venv services/collector/.venv
           services/collector/.venv/bin/pip install -q -e 'services/collector[dev]'
